@@ -1,0 +1,14 @@
+# folders
+node_modules
+database/seeders
+log
+temp
+test
+
+# dot files
+.env.development.local
+.env.production.local
+.yarn
+.yarnrc
+package-lock.json
+yarn.lock

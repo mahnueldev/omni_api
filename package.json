@@ -1,0 +1,47 @@
+{
+  "name": "omni-api",
+  "version": "1.0.0",
+  "description": "Omni db for Omni react client",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production node server",
+    "dev:server": "cross-env NODE_ENV=development nodemon server",
+    "dev:css": "postcss public/css/tailwind.css -o public/css/styles.css --watch",
+    "dev": "concurrently \"yarn dev:server\" \"yarn dev:css\"",
+    "test": "jest --coverage"
+  },
+  "author": "Mahnuel",
+  "license": "",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "config": "^3.3.9",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
+    "date-fns-tz": "^2.0.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-handlebars": "^7.1.0",
+    "express-validator": "^7.0.1",
+    "fs-extra": "^11.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.0",
+    "nodemailer": "^6.9.4",
+    "nodemailer-express-handlebars": "^6.1.0",
+    "rotating-file-stream": "^3.1.0",
+    "sequelize": "^6.21.4",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.2.1",
+    "cross-env": "^7.0.3",
+    "jest": "^29.6.2",
+    "postcss": "^8.4.27",
+    "postcss-cli": "^10.1.0",
+    "sequelize-cli": "^6.6.1",
+    "tailwindcss": "^3.3.3"
+  }
+}

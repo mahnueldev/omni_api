@@ -1,0 +1,30 @@
+{
+  "development": {
+    "username": "root",
+    "password": "rootwck",
+    "port": "3306",
+    "database": "omni_api",
+    "host": "localhost",
+    "dialect": "mysql"
+    
+   
+  },
+  "test": {
+    "username": "root",
+    "password": "rootwck",
+    "port": "3306",
+    "database": "omni_api",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "port": "3306",
+    "database": "omni_api",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  }
+}
