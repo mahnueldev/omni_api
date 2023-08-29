@@ -8,10 +8,9 @@ const corsOptions = require('./config/corsOptions');
 const db= require('./database/models/index');
 const morgan = require('morgan');
 const exphbs  = require('express-handlebars');
-// const geoIP = require('./middleware/geoIP');
 const PORT = process.env.PORT || 8080;
 const {accessLogMiddleware, errorLogMiddleware } = require('./middleware/morganWare');
-// const verifyJWT= require('./middleware/verifyJWT');
+const verifyJWT= require('./middleware/verifyJWT');
 
 app.use(express.json());
 
@@ -30,8 +29,6 @@ app.set('views', path.join(__dirname, 'public/views'));
 
 app.use('/', require('./routes/web/pages'));
 
-//geolocation middleware 
-// app.use(geoIP);
 
 
 // Cross Origin Resource Sharing
@@ -49,16 +46,11 @@ app.use(errorLogMiddleware);
 app.use(cookieParser());
 
 // Routes
-// Omega route
-// app.use('/api', require('./routes/omega'));
-// // Register route
-// app.use('/api/register', require('./routes/register'));
-// // User route
-// app.use('/api', require('./routes/user'));
-// // Application Configuration
-// app.use('/api/appconfig', require('./routes/appconfig'));
-// // SSO Configuration
-// app.use('/api/sso', require('./routes/sso'));
+app.use('/api', require('./routes/api/user'));
+
+// app.use(verifyJWT);
+app.use('/api', require('./routes/api/auth'));
+
 
 
 //server

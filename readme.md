@@ -4,3 +4,4 @@
 - Register
 - Login functionality
 - Logout functionality
+- Email registeration confirmation 
