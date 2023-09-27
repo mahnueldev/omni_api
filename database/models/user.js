@@ -17,7 +17,21 @@ module.exports = (sequelize, DataTypes) => {
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     email: DataTypes.STRING,
-    password: DataTypes.STRING
+    password: DataTypes.STRING,
+    refreshToken: {
+      type: DataTypes.TEXT, // Use TEXT type for storing JSON as a string
+      allowNull: true,
+      defaultValue: JSON.stringify([]), // Default value is an empty array as a string
+      get() {
+        // Parse the JSON data when retrieving from the database
+        const rawData = this.getDataValue('refreshToken');
+        return rawData ? JSON.parse(rawData) : [];
+      },
+      set(value) {
+        // Serialize the array as JSON when saving to the database
+        this.setDataValue('refreshToken', JSON.stringify(value));
+      },
+    },
   }, {
     sequelize,
     modelName: 'User',

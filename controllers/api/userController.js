@@ -1,18 +1,30 @@
 const { User } = require('../../database/models');
 
 // Get logged in user
-const getUser = async (req, res) => {
+const getUserProfile = async (req, res) => {
   try {
-    const {id} = req.params
-    const user = await User.findByPk(id, {
-      attributes: { exclude: ['password'] },
+    console.log('User ID from token:', req.user.email);
+
+    const foundUser = await User.findOne({
+      where: { email: req.user },
+      attributes: { exclude: ['password', 'refreshToken'] },
     });
-    res.json(user);
+    
+    if (!foundUser) {
+      console.log('User not found');
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    console.log('Found user:', foundUser);
+
+    res.json(foundUser);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 };
+
+
 
 // Delete user
 const deleteUser = async (req, res) => {
@@ -33,7 +45,9 @@ const deleteUser = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      attributes: { exclude: ['password', 'refreshToken'] },
+    });
     if (!users.length) {
       return res.status(204).json({ msg: 'No Users found' });
     }
@@ -44,4 +58,4 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-module.exports = { getUser, deleteUser, getAllUsers };
+module.exports = { getUserProfile, deleteUser, getAllUsers };

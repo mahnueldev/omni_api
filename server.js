@@ -1,10 +1,11 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
-const app = express();
 const cors = require("cors");
-const cookieParser = require('cookie-parser');
 const corsOptions = require('./config/corsOptions');
+// const config = require('./config/config');
+const app = express();
+const cookieParser = require('cookie-parser');
 const db= require('./database/models/index');
 const morgan = require('morgan');
 const exphbs  = require('express-handlebars');
@@ -31,8 +32,6 @@ app.use('/', require('./routes/web/pages'));
 
 
 
-// Cross Origin Resource Sharing
-app.use(cors(corsOptions));
 
 // Use HTTP request logger
 app.use(morgan('dev'));
@@ -42,14 +41,21 @@ app.use(accessLogMiddleware);
 app.use(errorLogMiddleware);
 
 
+
 // Use the cookie-parser middleware
 app.use(cookieParser());
 
-// Routes
-app.use('/api', require('./routes/api/user'));
 
-// app.use(verifyJWT);
+// Cross Origin Resource Sharing
+app.use(cors(corsOptions));
+// Routes
+app.use('/api', require('./routes/api/register'));
 app.use('/api', require('./routes/api/auth'));
+app.use('/api', require('./routes/api/refresh'));
+
+
+app.use(verifyJWT);
+app.use('/api', require('./routes/api/user'));
 
 
 

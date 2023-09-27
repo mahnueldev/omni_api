@@ -18,6 +18,11 @@ module.exports = {
       email: {
         type: Sequelize.STRING
       },
+      refreshToken: {
+        type: Sequelize.TEXT, // Use JSON type to store the array
+        allowNull: true,
+        
+      },
       password: {
         type: Sequelize.STRING
       },
@@ -35,3 +40,5 @@ module.exports = {
     await queryInterface.dropTable('Users');
   }
 };
+
+// npx sequelize-cli model:generate --name Array --attributes name:string,

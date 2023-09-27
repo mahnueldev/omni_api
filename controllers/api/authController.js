@@ -1,9 +1,7 @@
 const bcrypt = require('bcryptjs');
-const { validationResult } = require('express-validator');
-const { sendWelcomeEmail } = require('../../utils/authMailer');
+const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const { User } = require('../../database/models');
-
 
 if (process.env.NODE_ENV === 'development') {
   dotenv.config({ path: '.env.development.local' });
@@ -11,77 +9,89 @@ if (process.env.NODE_ENV === 'development') {
   dotenv.config({ path: '.env.production.local' });
 }
 
-const createUser = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+const login = async (req, res) => {
+  const cookies = req.cookies;
+  console.log(`cookie available at login: ${JSON.stringify(cookies)}`);
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ msg: 'Username and password are required.' });
+
+  const foundUser = await User.findOne({ where: { email } });
+
+  if (!foundUser) {
+    return res.status(400).json({ msg: 'Invalid email or password' });
   }
 
-  const { firstName, lastName, email, password } = req.body;
+  const isPasswordMatch = await bcrypt.compare(password, foundUser.password);
 
-  try {
-    let user = await User.findOne({ where: { email } });
+  if (!isPasswordMatch) {
+    return res.status(400).json({ msg: 'Invalid email or password' });
+  } else if (isPasswordMatch) {
+    // Generate the access token
+    const accessToken = jwt.sign(
+      {
+        userInfo: {
+          email: foundUser.email,
+          // Add any other user-related data you need here
+        },
+      },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '2hr' }
+    );
 
-    if (user) {
-      if (user.archivedAt !== null) {
-   
-        return res.redirect(process.env.USER_RECOVERY);
-      } else {
-        return res.status(400).json({ msg: 'User already exists' });
+    // Generate the refresh token
+    const newRefreshToken = jwt.sign(
+      { email: foundUser.email },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: '6hr' }
+    );
+
+    let newRefreshTokenArray =
+    !cookies?.jwt
+        ? foundUser.refreshToken
+        : foundUser.refreshToken.filter(rt => rt !== cookies.jwt);
+
+
+if (cookies?.jwt) {
+      const refreshToken = cookies.jwt;
+      const foundToken = await User.findOne({
+        where: {
+          refreshToken: refreshToken,
+        },
+      });
+
+      // Detected refresh token reuse!
+      if (!foundToken) {
+        console.log('attempted refresh token reuse at login!');
+        // clear out ALL previous refresh tokens
+        newRefreshTokenArray = [];
       }
+
+      res.clearCookie('jwt', {
+        httpOnly: true,
+        sameSite: 'None',
+        secure: true,
+      });
     }
 
-    
+    // save refresh token with current user
+    foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+    const result = await foundUser.save();
+    console.log(result);
 
-    const salt = await bcrypt.genSalt(10);
-    user = new User({
-      firstName,
-      lastName,
-      email,
-      password,
+    // Set the refresh token as a secure HTTP-only cookie
+    res.cookie('jwt', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 24 * 60 * 60 * 1000, // Set the expiration time for the cookie
     });
 
-    user.password = await bcrypt.hash(password, salt);
-
-    // Attempt to send the welcome email
-    try {
-      await sendWelcomeEmail(firstName, email);
-    } catch (err) {
-      console.error('Error sending welcome email:', err.message);
-      return res.status(500).send('Error sending welcome email');
-    }
-
-    // If the email was sent successfully, save the user to the database
-    await user.save();
-    res.json({ msg: 'User created successfully' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    // Respond with a success message and access token
+    res.json({ msg: 'Logged in successfully', accessToken });
+  } else {
+    res.sendStatus(401);
   }
 };
 
-
-const login = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ where: { email } });
-
-    if (!user) {
-      return res.status(400).json({ msg: 'Invalid email or password' });
-    }
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatch) {
-      return res.status(400).json({ msg: 'Invalid email or password' });
-    }
-
-    res.json({ msg: 'Logged in successfully' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
-
-module.exports = { createUser , login  };
+module.exports = { login };

@@ -1,18 +1,28 @@
 const jwt = require('jsonwebtoken');
-const config = require('config');
+const dotenv = require('dotenv');
+
+
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config({ path: '.env.development.local' });
+} else {
+  dotenv.config({ path: '.env.production.local' });
+}
 
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
-  if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
-  const accessToken= authHeader.split(' ')[1];
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ msg: 'Unauthorized' });
+}
+const token = authHeader.split(' ')[1];
+
 
   jwt.verify(
-    accessToken,
-    config.get('accessTokenSecret'),
+    token,
+    process.env.ACCESS_TOKEN_SECRET,
     (err, decoded) => {
-      if (err) return res.sendStatus(403); // invalid token
-      req.user = decoded.user; // Store just the user ID
-      req.roles = decoded.roles; // Store the roles
+      if (err) return res.status(403).json({ msg: 'Invalid token' });
+      req.user = decoded.userInfo.email; // Store just the user ID
+      // req.roles = decoded.roles; // Store the roles
       next();
     }
   );
